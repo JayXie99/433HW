@@ -1,0 +1,51 @@
+---
+title: "Week 3"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(nycflights13)
+library(ggplot2)
+library(dplyr)
+
+# Q1:
+F<-flights
+Missing<-which(is.na(F$dep_time)==T)
+length(Missing)
+
+n<-dim(F)[2]
+  int1<-1:n
+  list<-c()
+  for (i in int1) {
+    Missing<-which(is.na(F[,i])==T)
+    LM<-length(Missing)
+    if (LM!=0){
+      list[i]=i
+} else
+{list[i]=0 
+  }
+} 
+  colnames(F)[list]
+
+
+# Q2:
+flights <- mutate(flights, dep_time_mins = dep_time %/% 100 * 60 + dep_time %% 100,
+                  sched_dep_time_mins = sched_dep_time %/% 100 * 60 + sched_dep_time %% 100)
+
+select(flights, starts_with('dep_time'), starts_with('sched'))
+
+
+# Q3:
+flights %>% 
+  group_by(year, month, day) %>%
+  summarize(avg_dep_delay = mean(dep_delay, na.rm = TRUE),
+            prop_cancelled = sum(is.na(dep_time)/n())) %>%
+  ggplot(mapping = aes(x = avg_dep_delay, y = prop_cancelled)) +
+  geom_point() +
+  geom_smooth(method = 'lm', se = FALSE)
+```
