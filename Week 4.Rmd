@@ -1,0 +1,72 @@
+---
+title: "Week 4"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(nycflights13)
+library(ggplot2)
+library(dplyr)
+```
+
+Q1: What time of day should you fly if you want to avoid delays as much as possible?
+```{r}
+flights %>%
+  group_by(hour) %>%
+  summarise(arr_delay = mean(arr_delay, na.rm = T),dep_delay=mean(dep_delay, na.rm = T)) 
+```
+5am-10am.
+
+Q2: Does this choice depend on anything? Season? Weather? Airport? Airline?
+
+One: Season
+```{r}
+Season_flights <- flights %>%
+  mutate(season = ifelse(month >= 3 & month <= 5, 'spring', 
+                         ifelse(month>=6 & month <= 8, "summer",
+                                ifelse(month>=9&month <=11, "autumn","winter"))))%>%
+  group_by(season)%>%
+  summarise(dep_delay=mean(dep_delay, na.rm = T))%>%
+  arrange(dep_delay)
+
+ggplot(Season_flights, aes(x=season, y=dep_delay))+
+  geom_bar(stat="identity")+
+  labs(x="Season",
+       y="Departure Delay")
+```
+
+The four seasons of depature delay time from longest to shortest are summer, spring, winter, and autumn.
+
+Two: Airport
+```{r}
+Airport_flights <- flights %>%
+  group_by(origin) %>%
+  mutate(dep_delay_lag = lag(dep_delay)) %>%
+  arrange(dep_delay) 
+
+ggplot(Airport_flights, aes(y = dep_delay, x = origin)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Departure Delay",
+       y = "Delay time")
+```
+The EWR has the most depature delay time, and the LGA has the least depature delay time.
+
+Three: Airlines
+```{r}
+Airlines_flights <- flights %>%
+  group_by(carrier) %>%
+  summarise(dep_delay = mean(dep_delay,na.rm = T))%>%
+  arrange(dep_delay)
+
+ggplot(Airlines_flights, aes(x=carrier, y=dep_delay))+
+  geom_bar(stat = "identity") +
+  labs(x="Carrier",
+       y="Departure Delay Time")
+```
+
+I would choose AS, HA, and US airlines because their departure delay time is shorter.
+
